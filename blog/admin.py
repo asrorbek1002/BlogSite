@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Post, PostContent, Category, Tag, PostCategory, PostTag
+from .models import Post, PostContent, Category, Tag, PostCategory, PostTag, Comment
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('post', 'name', 'email', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('name', 'email', 'comment_body')
+    raw_id_fields = ('post',)
+    ordering = ('-created_at',)
 
 class PostContentInline(admin.TabularInline):
     model = PostContent
