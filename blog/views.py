@@ -9,11 +9,14 @@ from django.shortcuts import get_object_or_404
 from .models import Post, Comment, Category, Tag, PostView
 from .serializers import PostSerializer, CommentSerializer, CategorySerializer, TagSerializer
 from .permissions import IsAdminOrReadOnly
+from .utils import notify_admin_telegram
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.prefetch_related('categories', 'tags').all()
     serializer_class = PostSerializer
     permission_classes = [IsAdminOrReadOnly]
+    filterset_fields = ['categories', 'tags']  # filtering uchun
+    search_fields = ['title', 'contents__text']  # qidiruv uchun
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -54,6 +57,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         parent_comment = serializer.validated_data.get('parent_comment')
         comment = serializer.save(user=self.request.user if self.request.user.is_authenticated else None)
+        notify_admin_telegram(comment)
         if parent_comment:
             parent_comment.send_reply_notification()
 
